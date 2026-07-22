@@ -5,6 +5,10 @@ from .config import Config
 from .io import load_image, save_image
 from .preprocess import crop_bottom, denoise, remove_scale_bar, remove_background, clahe
 from .segmentation import segment
+from .contours import (
+    find_contours,
+    save_preview,
+)
 
 def main():
 
@@ -34,21 +38,67 @@ def main():
     #save_image(cfg.output_dir / "06_background.png", background)
     #save_image(cfg.output_dir / "07_corrected.png", corrected)
 
+    output_dir = Path(
+        "output_contours"
+    )
+
+    output_dir.mkdir(
+        exist_ok=True
+    )
+
     binary = segment(image)
     save_image(cfg.output_dir / "08_binary.png", binary)
 
-    print("Done")
-    image = load_image(cfg.image_path)
+    # --------------------------------
+    # Validate image
+    # --------------------------------
 
-    print(f"Shape: {image.shape}")
-    print(f"Dtype: {image.dtype}")
-    print(f"Min: {image.min()}")
-    print(f"Max: {image.max()}")
-    print(f"Mean: {image.mean():.2f}")
+    print(
+        f"Shape: {binary.shape}"
+    )
 
+    print(
+        f"Min: {binary.min()}"
+    )
 
-    plt.hist(image.ravel(), bins=256)
-    plt.show()
+    print(
+        f"Max: {binary.max()}"
+    )
+
+    print(
+        f"Mean: {binary.mean():.2f}"
+    )
+
+    # --------------------------------
+    # Extract contours
+    # --------------------------------
+
+    contours = find_contours(
+        binary,
+        min_area=100,
+    )
+
+    print(
+        f"Found {len(contours)} contours."
+    )
+
+    # --------------------------------
+    # Save contour preview
+    # --------------------------------
+
+    save_preview(
+        output_dir / "contours_preview.png",
+        binary,
+        contours,
+    )
+
+    print(
+        "Contour preview saved:"
+    )
+
+    print(
+        output_dir / "contours_preview.png"
+    )
 
 
 if __name__ == "__main__":

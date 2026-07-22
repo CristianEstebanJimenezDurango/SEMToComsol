@@ -1,24 +1,11 @@
 import cv2
 import numpy as np
-import matplotlib.pyplot as plt
 
 
-def find_contours(binary, min_area=1000):
-    """
-    Find pore contours from a binary image.
-
-    Parameters
-    ----------
-    binary : ndarray
-        Binary image.
-    min_area : float
-        Minimum contour area.
-
-    Returns
-    -------
-    list
-        List of filtered contours.
-    """
+def find_contours(
+    binary: np.ndarray,
+    min_area: float = 100.0,
+):
 
     contours, hierarchy = cv2.findContours(
         binary,
@@ -38,55 +25,41 @@ def find_contours(binary, min_area=1000):
     return filtered
 
 
-def draw_contours(image, contours):
+def draw_contours(
+    binary: np.ndarray,
+    contours: list[np.ndarray],
+):
 
-    canvas = cv2.cvtColor(image, cv2.COLOR_GRAY2RGB)
+    # Convert binary image to BGR
+    preview = cv2.cvtColor(
+        binary,
+        cv2.COLOR_GRAY2BGR,
+    )
 
-    colors = [
-        (255, 0, 0),
-        (0, 255, 0),
+    # Draw contours in red
+    cv2.drawContours(
+        preview,
+        contours,
+        -1,
         (0, 0, 255),
-        (255, 255, 0),
-        (255, 0, 255),
-    ]
+        2,
+    )
 
-    for i, contour in enumerate(contours):
-
-        color = colors[i % len(colors)]
-
-        cv2.drawContours(
-            canvas,
-            [contour],
-            -1,
-            color,
-            2,
-        )
-
-        M = cv2.moments(contour)
-
-        if M["m00"] != 0:
-
-            cx = int(M["m10"] / M["m00"])
-            cy = int(M["m01"] / M["m00"])
-
-            cv2.putText(
-                canvas,
-                str(i + 1),
-                (cx, cy),
-                cv2.FONT_HERSHEY_SIMPLEX,
-                0.8,
-                color,
-                2,
-            )
-
-    return canvas
+    return preview
 
 
-def save_preview(filename, preview):
+def save_preview(
+    path,
+    binary,
+    contours,
+):
 
-    plt.figure(figsize=(8, 8))
-    plt.imshow(preview)
-    plt.axis("off")
-    plt.tight_layout()
-    plt.savefig(filename, dpi=300)
-    plt.close()
+    preview = draw_contours(
+        binary,
+        contours,
+    )
+
+    cv2.imwrite(
+        str(path),
+        preview,
+    )
